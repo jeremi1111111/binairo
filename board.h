@@ -19,6 +19,7 @@ public:
 
 	void print();
 	void set(int, int, int);
+	void set(int, std::bitset<32>, int);
 	bool check_if_solved();
 	void solve(int = 0);
 };

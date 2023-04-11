@@ -4,8 +4,10 @@ board::board(std::string file_name)
 {
 	std::fstream file;
 	file.open(file_name);
-	if (file.bad())
+	if (file.bad()) {
+		file.close();
 		return;
+	}
 	file >> this->width;
 	file >> this->height;
 	this->cols_x = new std::bitset<32>[width] {};
@@ -32,6 +34,7 @@ board::board(std::string file_name)
 			}
 		}
 	}
+	file.close();
 }
 
 void board::print()
@@ -76,22 +79,55 @@ void board::set(int mode, int n1, int n2)
 	}
 }
 
+void board::set(int mode, std::bitset<32> mask, int n)
+{
+	std::bitset<32>* p1; // masked bitsets
+	std::bitset<32>* p2; // other direction bitsets
+	int b; // row/col boundary
+	switch (mode)
+	{
+	case 1:
+		p1 = rows_o;
+		p2 = cols_o;
+		b = height;
+		break;
+	case 2:
+		p1 = cols_x;
+		p2 = rows_x;
+		b = width;
+		break;
+	case 3:
+		p1 = cols_o;
+		p2 = rows_o;
+		b = width;
+		break;
+	default:
+		p1 = rows_x;
+		p2 = cols_x;
+		b = height;
+		break;
+	}
+	p1[n] |= mask;
+	for (int i = 0; i < b; i++)
+		if (mask.test(i) == 1)
+			p2[i].set(n);
+}
+
 bool board::check_if_solved()
 {
-	for (int i = 0; i < height; i++) {
+	for (int i = 0; i < height; i++)
 		if (rows_o[i].count() + rows_x[i].count() < width)
 			return 1;
-	}
 	return 0;
 }
 
 void board::solve(int mode)
 {
 	// modes:
-	// 0 - test rows_o
-	// 1 - test rows_x
-	// 2 - test cols_o
-	// 3 - test cols_x
+	// 0 - test rows_o, assign x
+	// 1 - test rows_x, assign o
+	// 2 - test cols_o, assign x
+	// 3 - test cols_x, assign o
 
 	std::bitset<32>* p1; // test bitsets
 	std::bitset<32>* p2; // other sign bitsets
@@ -140,9 +176,12 @@ void board::solve(int mode)
 			if (p1[i].test(j) && p1[i].test(j + 2))
 				set(mode, i, j + 1);
 		// test counters
+		if (p1[i].count() == b2 / 2) {
+			set(mode, (~p1[i]), i);
+		}
 	}
 	if (mode < 3)
 		solve(mode + 1);
-	//if (mode == 0 && check_if_solved() == 1)
-	//	solve(0);
+	if (mode == 0 && check_if_solved() == 1)
+		solve(0);
 }
