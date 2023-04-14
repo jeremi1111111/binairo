@@ -133,6 +133,9 @@ void board::set(int mode, int n1, int n2)
 
 void board::set(int mode, std::bitset<32> mask, int n)
 {
+	if (mask.none())
+		return;
+	std::cout << mask << std::endl;
 	std::bitset<32>* p1; // masked bitsets
 	std::bitset<32>* p2; // other direction bitsets
 	int b; // other direction boundary
@@ -163,6 +166,7 @@ void board::set(int mode, std::bitset<32> mask, int n)
 	for (int i = 0; i < b; i++)
 		if (mask.test(i))
 			p2[i].set(n);
+	//print();
 }
 
 int board::count()
@@ -236,30 +240,24 @@ void board::solve(int mode)
 		mask2 = 0b1001;
 		for (int j = 0; j < b2 - 1; j++)
 			if ((p1[i] & (mask1 << j)) == (mask1 << j))
-				set(mode, ((mask2 << j) >> 1) ^ p2[i], i);
+				set(mode, ((mask2 << j) >> 1) & (~p2[i] & gm), i);
 		// test mask "101"
 		mask1 = 0b101;
 		mask2 = 0b10;
 		for (int j = 0; j < b2 - 2; j++)
 			if ((p1[i] & (mask1 << j)) == (mask1 << j))
-				set(mode, (mask2 << j) ^ p2[i], i);
+				set(mode, (mask2 << j) & (~p2[i] & gm), i);
 		// test mask "1001", testing opposite sign! (the point is to reach max count of one sign)
-		//mask1 = 0b1001;
-		//mask2 = 0b11;
-		//for (int j = 0; j < b2 - 1; j++)
-		//	if ((p2[i] & ((mask1 << j) >> 1)) == ((mask1 << j) >> 1) && p1[i].count() + 1 == b2 / 2)
-		//		set(mode, ((~p1[i]) ^ p2[i]) & ((mask2 << j) ^ gm), i);
-			//if (p2[i].test(j) && p2[i].test(j + 3) && (p1[i].count() + 1 == b2 / 2))
-			//	set(mode, ((~p1[i]) ^ p2[i]).reset(j + 1).reset(j + 2) & gm, i);
 		// test mask p1:"1000", p2:"0001" and vice versa
-		//mask2 = 0b11;
-		//for (int j = 0; j < b2 - 3; j++)
-		//	if ((p1[i].test(j) && p2[i].test(j + 3)) || (p1[i].test(j + 3) && p2[i].test(j)))
-		//		if (p1[i].count() + 1 == b2 / 2)
-		//			set(mode, ((~p1[i]) ^ p2[i]) & ((mask2 << j) ^ gm), i);
+		mask1 = 0b1;
+		mask2 = 0b110;
+		for (int j = 0; j < b2 - 3; j++)
+			if ((p1[i] & (mask1 << j)) == (mask1 << j) && (p2[i] & (mask1 << j + 3)) == (mask1 << j + 3))
+				if (p1[i].count() + 1 == b2 / 2)
+					set(mode, (~p1[i] ^ (mask2 << j)) & (~p2[i] & gm), i);
 		// test counter
 		if (p1[i].count() == b2 / 2)
-			set(mode, ((~p1[i]) ^ p2[i]) & gm, i);
+			set(mode, ~p1[i] & (~p2[i] & gm), i);
 	}
 	if (mode < 3)
 		solve(mode + 1);
