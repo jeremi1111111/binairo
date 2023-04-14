@@ -249,12 +249,12 @@ void board::solve(int mode)
 				set(mode, (mask2 << j) & (~p2[i] & gm), i);
 		// test mask "1001", testing opposite sign! (the point is to reach max count of one sign)
 		// test mask p1:"1000", p2:"0001" and vice versa
-		mask1 = 0b1;
-		mask2 = 0b110;
-		for (int j = 0; j < b2 - 3; j++)
-			if ((p1[i] & (mask1 << j)) == (mask1 << j) && (p2[i] & (mask1 << j + 3)) == (mask1 << j + 3))
-				if (p1[i].count() + 1 == b2 / 2)
-					set(mode, (~p1[i] ^ (mask2 << j)) & (~p2[i] & gm), i);
+		//mask1 = 0b1;
+		//mask2 = 0b110;
+		//for (int j = 0; j < b2 - 3; j++)
+		//	if ((p1[i] & (mask1 << j)) == (mask1 << j) && (p2[i] & (mask1 << j + 3)) == (mask1 << j + 3))
+		//		if (p1[i].count() + 1 == b2 / 2)
+		//			set(mode, (~p1[i] ^ (mask2 << j)) & (~p2[i] & gm), i);
 		// test counter
 		if (p1[i].count() == b2 / 2)
 			set(mode, ~p1[i] & (~p2[i] & gm), i);
